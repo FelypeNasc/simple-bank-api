@@ -1,1 +1,1 @@
-# CatBank
+# simple-bank-api
