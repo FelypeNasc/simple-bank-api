@@ -1,7 +1,8 @@
 export interface DepositDto {
-  cpf: string;
-  agency: number;
-  account: number;
+  id?: any;
+  cpf: number;
+  agencyNumber: number;
+  accountNumber: number;
   agencyCheckDigit: number;
   accountCheckDigit: number;
   value: number;

@@ -1,3 +1,3 @@
 export interface GetAccountDto {
-  cpf: string;
+  cpf: number;
 }
