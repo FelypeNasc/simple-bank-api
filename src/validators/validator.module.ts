@@ -42,4 +42,11 @@ export class ValidatorModule {
     }
     return true;
   }
+
+  public valueValidator(value: number): boolean {
+    if (value <= 0) {
+      throw new BadRequest('Value must be greater than 0');
+    }
+    return true;
+  }
 }

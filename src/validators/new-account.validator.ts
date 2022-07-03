@@ -1,7 +1,7 @@
 import { ValidatorModule } from './validator.module';
 import { NewAccountDto } from '../models/dtos/new-account.dto';
 
-export class newAccountValidator extends ValidatorModule {
+export class NewAccountValidator extends ValidatorModule {
   public validate(newAccountDto: NewAccountDto): void {
     try {
       this.nameValidator(newAccountDto.name);
