@@ -1,5 +1,5 @@
 export interface NewAccountDto {
-  id?: string;
+  id?: any;
   name: string;
   password: string;
   cpf: string;
