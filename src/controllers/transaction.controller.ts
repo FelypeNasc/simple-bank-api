@@ -14,6 +14,25 @@ export class TransactionController {
       };
       res.status(201).send(response);
     } catch (error: any) {
+      console.log(error);
+      const response: ResponseStandard = {
+        status: error.status,
+        message: error.message,
+      };
+      res.status(error.statusCode).send(response);
+    }
+  }
+
+  public async makeWithdraw(req: Request, res: Response) {
+    try {
+      // const data = await this.transactionService.makeWithdraw(req.body);
+      // const response: ResponseStandard = {
+      //   status: 'success',
+      //   data,
+      // };
+      // res.status(201).send(response);
+    } catch (error: any) {
+      console.log(error);
       const response: ResponseStandard = {
         status: error.status,
         message: error.message,

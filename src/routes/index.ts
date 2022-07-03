@@ -20,7 +20,7 @@ router
   .post(transactionController.makeDeposit.bind(transactionController));
 router
   .route('/withdraw')
-  .post(accountController.createAccount.bind(accountController));
+  .post(transactionController.makeWithdraw.bind(transactionController));
 router
   .route('/transfer')
   .post(accountController.createAccount.bind(accountController));
