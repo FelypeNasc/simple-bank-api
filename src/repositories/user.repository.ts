@@ -3,7 +3,7 @@ import { InternalError } from '../errors';
 import UserModel from '../models/user.model';
 
 export class UserRepository extends PostgresDB {
-  public async create(newUser: UserModel): Promise<object> {
+  public async create(newUser: UserModel): Promise<UserModel> {
     try {
       const client = await this.pool.connect();
       const query = `
@@ -11,14 +11,17 @@ export class UserRepository extends PostgresDB {
                 VALUES ($1,$2,$3,$4,$5)
                 RETURNING name, birthdate, cpf, email;
             `;
-      const response = await client.query(query, [
+
+      const queryResponse = await client.query(query, [
         newUser.id,
         newUser.name,
         newUser.birthdate,
         newUser.cpf,
         newUser.email,
       ]);
-      return response.rows[0];
+      const response: UserModel = queryResponse.rows[0];
+
+      return response;
     } catch (e) {
       throw new InternalError();
     }
