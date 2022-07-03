@@ -27,14 +27,20 @@ export class UserRepository extends PostgresDB {
     }
   }
 
-  public async findByCpf(cpf: number): Promise<UserModel> {
+  public async findByCpf(cpf: number): Promise<UserModel | null> {
     try {
       const client = await this.pool.connect();
       const query = `
                 SELECT * FROM mybank.users WHERE cpf = $1;
             `;
-      const queryResponse = await client.query(query, [cpf]);
+      const values = [cpf];
+      const queryResponse = await client.query(query, values);
       const response: UserModel = queryResponse.rows[0];
+
+      if (!response) {
+        return null;
+      }
+
       return response;
     } catch (e) {
       throw new InternalError();
