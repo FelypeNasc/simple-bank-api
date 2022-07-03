@@ -3,8 +3,8 @@ export default interface AccountModel {
   user_id?: string;
   password: string;
   agency_number: number;
-  agency_verifier_code: number;
+  agency_check_digit: number;
   account_number: number;
-  account_verifier_code: number;
+  account_check_digit: number;
   balance: number;
 }
