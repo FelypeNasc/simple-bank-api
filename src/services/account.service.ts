@@ -3,7 +3,7 @@ import { BadRequest } from '../errors';
 import { NewAccountValidator } from '../validators/new-account.validator';
 import { AccountRepository } from '../repositories/account.repository';
 import { UserRepository } from '../repositories/user.repository';
-import getRandomInt from '../utils/getRandom.utils';
+import getRandomInt from '../utils/get-random.utils';
 import AccountModel from '../models/account.model';
 import UserModel from '../models/user.model';
 import bcrypt from 'bcrypt';
@@ -21,11 +21,11 @@ export class AccountService {
   public async createAccount(newAccountDto: NewAccountDto): Promise<any> {
     try {
       this.newAccountValidator.validate(newAccountDto);
-      const userExists: object = await this.userRepository.findByCpf(
+      const userExists: UserModel | null = await this.userRepository.findByCpf(
         newAccountDto.cpf,
       );
       if (userExists) {
-        throw new BadRequest('User already exists');
+        throw new BadRequest('This CPF already has an account');
       }
 
       newAccountDto.id = v4();
@@ -50,12 +50,12 @@ export class AccountService {
   public async getAccount(getAccountDto: GetAccountDto): Promise<any> {
     try {
       this.validatorModule.cpfValidator(getAccountDto.cpf);
-      const userExists: any = await this.userRepository.findByCpf(
-        getAccountDto.cpf,
-      );
+      const userExists = await this.userRepository.findByCpf(getAccountDto.cpf);
+
       if (!userExists) {
-        throw new BadRequest('User does not exists');
+        throw new BadRequest('This CPF does not have an account');
       }
+
       const accountData = await this.accountRepository.findById(userExists.id);
       return accountData;
     } catch (error) {
@@ -90,9 +90,9 @@ export class AccountService {
       id: v4(),
       user_id: newAccountDto.id,
       password: encriptedPassword,
-      agency_number: getRandomInt(100, 999),
+      agency_number: getRandomInt(1, 999),
       agency_check_digit: getRandomInt(1, 9),
-      account_number: getRandomInt(10000, 99999),
+      account_number: getRandomInt(1, 99999),
       account_check_digit: getRandomInt(1, 9),
       balance: 0,
     };

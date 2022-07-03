@@ -10,6 +10,7 @@ import UserModel from '../models/user.model';
 
 import bcrypt from 'bcrypt';
 import { v4 } from 'uuid';
+import AccountResponseModel from '../models/account-response.model';
 
 export class TransactionService {
   private accountRepository = new AccountRepository();
@@ -20,38 +21,105 @@ export class TransactionService {
   public async makeDeposit(depositDto: DepositDto): Promise<any> {
     try {
       this.depositValidator.validate(depositDto);
-
-      const user: UserModel = await this.userRepository.findByCpf(
+      const user: UserModel | null = await this.userRepository.findByCpf(
         depositDto.cpf,
       );
+
       if (!user) {
         throw new BadRequest('User not found');
       }
 
-      const depositAccount: AccountModel =
+      const depositAccount: AccountResponseModel | null =
         await this.accountRepository.findByAccountNumber(user.id, depositDto);
+
       if (!depositAccount) {
         throw new BadRequest('Account not found');
       }
+      console.log(depositAccount);
 
-      // const encriptedPassword = depositAccount.password;
-      // const isPasswordValid = bcrypt.compareSync(
-      //   depositDto.password,
-      //   encriptedPassword,
-      // );
+      const newDeposit = this.buildDeposit(depositDto, depositAccount.id);
+      console.log(newDeposit);
 
-      // if (!isPasswordValid) {
-      //   throw new BadRequest('Wrong password');
-      // }
+      const depositResponse = await this.transactionRepository.newDeposit(
+        newDeposit,
+      );
 
-      // const newDeposit = this.buildDeposit(depositDto, depositAccount.id);
+      await this.accountRepository.updateBalance(
+        depositAccount.id,
+        depositResponse.value,
+        'credit',
+      );
 
-      // await this.transactionRepository.newDeposit(newDeposit);
-      return depositAccount;
+      const apiResponse = {
+        transactionId: depositResponse.id,
+        type: depositResponse.type,
+        value: depositResponse.value,
+        tax: depositResponse.tax,
+        totalValue: depositResponse.totalValue,
+        cpf: user.cpf,
+        agencyNumber: depositAccount.agencyNumber,
+        agencyCheckDigit: depositAccount.agencyCheckDigit,
+        accountNumber: depositAccount.accountNumber,
+        accountCheckDigit: depositAccount.accountCheckDigit,
+        timestamp: depositResponse.createdAt,
+      };
+
+      console.log(apiResponse);
+      return apiResponse;
     } catch (error) {
       throw error;
     }
   }
+
+  // public async makeWithdraw(withdrawDto: DepositDto): Promise<any> {
+  //   try {
+  //     this.depositValidator.validate(withdrawDto);
+  //     const user: UserModel | null = await this.userRepository.findByCpf(
+  //       withdrawDto.cpf,
+  //     );
+
+  //     if (!user) {
+  //       throw new BadRequest('User not found');
+  //     }
+
+  //     const withdrawAccount: AccountResponseModel | null =
+  //       await this.accountRepository.findByAccountNumber(user.id, withdrawDto);
+
+  //     if (!withdrawAccount) {
+  //       throw new BadRequest('Account not found');
+  //     }
+
+  //     const newWithdraw = this.buildWithdraw(withdrawDto, withdrawAccount.id);
+  //     const withdrawResponse = await this.transactionRepository.newWithdraw(
+  //       newWithdraw,
+  //     );
+
+  //     await this.accountRepository.updateBalance(
+  //       withdrawAccount.id,
+  //       withdrawResponse.value,
+  //       'debit',
+  //     );
+
+  //     const apiResponse = {
+  //       transactionId: withdrawResponse.id,
+  //       type: withdrawResponse.type,
+  //       value: withdrawResponse.value,
+  //       tax: withdrawResponse.tax,
+  //       totalValue: withdrawResponse.totalValue,
+  //       cpf: user.cpf,
+  //       agencyNumber: withdrawAccount.agencyNumber,
+  //       agencyCheckDigit: withdrawAccount.agencyCheckDigit,
+  //       accountNumber: withdrawAccount.accountNumber,
+  //       accountCheckDigit: withdrawAccount.accountCheckDigit,
+  //       timestamp: withdrawResponse.createdAt,
+  //     };
+
+  //     console.log(apiResponse);
+  //     return apiResponse;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   private buildDeposit(
     depositDto: DepositDto,
