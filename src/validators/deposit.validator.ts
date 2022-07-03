@@ -6,7 +6,14 @@ export class DepositValidator extends ValidatorModule {
     try {
       this.cpfValidator(depositDto.cpf);
       this.valueValidator(depositDto.value);
-      // TODO: Add agency and account validators
+      this.accountValidator(
+        depositDto.accountNumber,
+        depositDto.accountCheckDigit,
+      );
+      this.agencyValidator(
+        depositDto.agencyNumber,
+        depositDto.agencyCheckDigit,
+      );
     } catch (error) {
       throw error;
     }
