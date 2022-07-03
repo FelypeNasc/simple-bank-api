@@ -1,19 +1,19 @@
 import { BadRequest } from '../errors';
 
 export class ValidatorModule {
-  public cpfValidator(cpf: string): boolean {
+  public cpfValidator(cpf: number): boolean {
     const cpfRegex = /^[0-9]{11}$/; // cpf format
-    if (cpf.length === 0 || !cpfRegex.test(cpf)) {
+    if (cpf.toString().length === 0 || !cpfRegex.test(cpf.toString())) {
       throw new BadRequest('CPF invalid');
     }
     return true;
   }
 
   public passwordValidator(password: string): boolean {
-    const passwordRegex = /^[A-Za-z\d@$!%*?&]{8,15}$/; // 8 to 15 characters, no special characters
+    const passwordRegex = /^[0-9]{4,8}$/; // 8 to 15 characters, no special characters
     if (!passwordRegex.test(password)) {
       throw new BadRequest(
-        'Password must have between 8 and 15 characters and no special characters',
+        'Password must be numeric and have between 4 and 8 characters',
       );
     }
     return true;
