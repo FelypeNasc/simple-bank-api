@@ -24,7 +24,7 @@ export class UserRepository extends PostgresDB {
     }
   }
 
-  public async findByCpf(cpf: string): Promise<UserModel> {
+  public async findByCpf(cpf: number): Promise<UserModel> {
     try {
       const client = await this.pool.connect();
       const query = `
