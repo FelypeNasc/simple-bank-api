@@ -29,7 +29,7 @@ export class TransactionService {
       }
 
       const depositAccount: AccountModel =
-        await this.accountRepository.findById(user.id);
+        await this.accountRepository.findByAccountNumber(user.id, depositDto);
       if (!depositAccount) {
         throw new BadRequest('Account not found');
       }
@@ -44,9 +44,10 @@ export class TransactionService {
       //   throw new BadRequest('Wrong password');
       // }
 
-      const newDeposit = this.buildDeposit(depositDto, depositAccount.id);
+      // const newDeposit = this.buildDeposit(depositDto, depositAccount.id);
 
-      await this.transactionRepository.newDeposit(newDeposit);
+      // await this.transactionRepository.newDeposit(newDeposit);
+      return depositAccount;
     } catch (error) {
       throw error;
     }

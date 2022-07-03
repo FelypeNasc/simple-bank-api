@@ -36,12 +36,12 @@ export class AccountService {
       const userResponse = await this.userRepository.create(newUser);
       const accountResponse = await this.accountRepository.create(newAccount);
 
-      const response = {
+      const newAccountData = {
         user: userResponse,
         account: accountResponse,
       };
 
-      return response;
+      return newAccountData;
     } catch (error) {
       throw error;
     }
@@ -56,12 +56,8 @@ export class AccountService {
       if (!userExists) {
         throw new BadRequest('User does not exists');
       }
-      console.log(userExists.id);
-      const accountResponse = await this.accountRepository.findById(
-        userExists.id,
-      );
-      console.log(accountResponse);
-      return accountResponse;
+      const accountData = await this.accountRepository.findById(userExists.id);
+      return accountData;
     } catch (error) {
       throw error;
     }
