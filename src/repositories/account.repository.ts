@@ -1,10 +1,11 @@
 import PostgresDB from '.';
 import { InternalError } from '../errors';
+import AccountResponseModel from '../models/account-response.model';
 import AccountModel from '../models/account.model';
 import { DepositDto } from '../models/dtos/deposit.dto';
 
 export class AccountRepository extends PostgresDB {
-  public async create(newAccount: AccountModel): Promise<object> {
+  public async create(newAccount: AccountModel): Promise<AccountResponseModel> {
     try {
       const client = await this.pool.connect();
       const query = `
@@ -23,9 +24,15 @@ export class AccountRepository extends PostgresDB {
         newAccount.balance,
       ];
       const queryResponse = await client.query(query, values);
-      const response = queryResponse.rows[0];
+      const newAccountData: AccountResponseModel = {
+        accountNumber: queryResponse.rows[0].account_number,
+        agencyNumber: queryResponse.rows[0].agency_number,
+        agencyCheckDigit: queryResponse.rows[0].agency_check_digit,
+        accountCheckDigit: queryResponse.rows[0].account_check_digit,
+        balance: queryResponse.rows[0].balance,
+      };
 
-      return response;
+      return newAccountData;
     } catch (e) {
       throw new InternalError();
     }
@@ -52,7 +59,7 @@ export class AccountRepository extends PostgresDB {
   public async findByAccountNumber(
     userId: string,
     accountData: DepositDto,
-  ): Promise<AccountModel> {
+  ): Promise<AccountResponseModel> {
     try {
       const client = await this.pool.connect();
       const query = `
@@ -71,9 +78,16 @@ export class AccountRepository extends PostgresDB {
         accountData.agencyNumber,
         accountData.agencyCheckDigit,
       ]);
-      const response: AccountModel = queryResponse.rows[0];
+      const accountFound: AccountResponseModel = {
+        id: queryResponse.rows[0].id,
+        accountNumber: queryResponse.rows[0].account_number,
+        accountCheckDigit: queryResponse.rows[0].account_check_digit,
+        agencyNumber: queryResponse.rows[0].agency_number,
+        agencyCheckDigit: queryResponse.rows[0].agency_check_digit,
+        balance: queryResponse.rows[0].balance,
+      };
 
-      return response;
+      return accountFound;
     } catch (e) {
       throw new InternalError();
     }
