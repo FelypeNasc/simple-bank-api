@@ -1,6 +1,6 @@
 import { NewAccountDto } from '../models/dtos/new-account.dto';
 import { BadRequest } from '../errors';
-import { newAccountValidator } from '../validators/new-account.validator';
+import { NewAccountValidator } from '../validators/new-account.validator';
 import { AccountRepository } from '../repositories/account.repository';
 import { UserRepository } from '../repositories/user.repository';
 import getRandomInt from '../utils/getRandom.utils';
@@ -15,7 +15,7 @@ import { GetAccountDto } from '../models/dtos/get-account.dto';
 export class AccountService {
   private accountRepository = new AccountRepository();
   private userRepository = new UserRepository();
-  private newAccountValidator = new newAccountValidator();
+  private newAccountValidator = new NewAccountValidator();
   private validatorModule = new ValidatorModule();
 
   public async createAccount(newAccountDto: NewAccountDto): Promise<any> {
@@ -24,7 +24,6 @@ export class AccountService {
       const userExists: object = await this.userRepository.findByCpf(
         newAccountDto.cpf,
       );
-      console.log(userExists);
       if (userExists) {
         throw new BadRequest('User already exists');
       }
@@ -96,9 +95,9 @@ export class AccountService {
       user_id: newAccountDto.id,
       password: encriptedPassword,
       agency_number: getRandomInt(100, 999),
-      agency_verifier_code: getRandomInt(1, 9),
+      agency_check_digit: getRandomInt(1, 9),
       account_number: getRandomInt(10000, 99999),
-      account_verifier_code: getRandomInt(1, 9),
+      account_check_digit: getRandomInt(1, 9),
       balance: 0,
     };
     return newAccount;
