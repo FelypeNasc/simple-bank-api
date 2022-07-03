@@ -21,7 +21,11 @@ export class ValidatorModule {
 
   public nameValidator(name: string): boolean {
     const nameRegex = /^[A-Za-z\s]{3,60}$/; // 3 to 60 characters, spaces allowed
-    if (name.includes(' ') || !nameRegex.test(name)) {
+    if (
+      name.includes('  ') ||
+      name.split(' ').length < 2 ||
+      !nameRegex.test(name)
+    ) {
       throw new BadRequest('Name must have between 3 and 60 characters');
     }
     return true;
@@ -46,6 +50,26 @@ export class ValidatorModule {
   public valueValidator(value: number): boolean {
     if (value <= 0) {
       throw new BadRequest('Value must be greater than 0');
+    }
+    return true;
+  }
+
+  public accountValidator(accountNumber: number, checkDigit: number): boolean {
+    if (1 > accountNumber || accountNumber > 99999) {
+      throw new BadRequest('Invalid account number');
+    }
+    if (1 > checkDigit || checkDigit > 9) {
+      throw new BadRequest('Invalid account check digit');
+    }
+    return true;
+  }
+
+  public agencyValidator(agencyNumber: number, checkDigit: number): boolean {
+    if (1 > agencyNumber || agencyNumber > 999) {
+      throw new BadRequest('Invalid agency number');
+    }
+    if (1 > checkDigit || checkDigit > 9) {
+      throw new BadRequest('Invalid agency check digit');
     }
     return true;
   }
