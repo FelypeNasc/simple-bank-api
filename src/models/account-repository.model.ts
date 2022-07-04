@@ -1,7 +1,7 @@
-export default interface AccountResponseModel {
+export default interface AccountRepositoryModel {
   id: string;
   userId: string;
-  password?: string;
+  password: string;
   agencyNumber: number;
   agencyCheckDigit: number;
   accountNumber: number;
