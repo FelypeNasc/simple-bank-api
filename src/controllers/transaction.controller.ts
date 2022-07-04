@@ -16,8 +16,6 @@ export class TransactionController {
 
       res.status(201).send(response);
     } catch (error: any) {
-      console.log(error);
-
       const response: ResponseStandard = {
         status: error.status,
         message: error.message,
@@ -38,8 +36,6 @@ export class TransactionController {
 
       res.status(201).send(response);
     } catch (error: any) {
-      console.log(error);
-
       const response: ResponseStandard = {
         status: error.status,
         message: error.message,
@@ -60,8 +56,6 @@ export class TransactionController {
 
       res.status(201).send(response);
     } catch (error: any) {
-      console.log(error);
-
       const response: ResponseStandard = {
         status: error.status,
         message: error.message,

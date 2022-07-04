@@ -14,7 +14,6 @@ export class AccountController {
       };
       res.status(201).send(response);
     } catch (error: any) {
-      console.log(error);
       const response: ResponseStandard = {
         status: error.status,
         message: error.message,
@@ -32,7 +31,6 @@ export class AccountController {
       };
       res.status(200).send(response);
     } catch (error: any) {
-      console.log(error);
       const response: ResponseStandard = {
         status: error.status,
         message: error.message,
@@ -50,7 +48,6 @@ export class AccountController {
       };
       res.status(200).send(response);
     } catch (error: any) {
-      console.log(error);
       const response: ResponseStandard = {
         status: error.status,
         message: error.message,

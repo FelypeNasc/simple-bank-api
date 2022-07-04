@@ -76,7 +76,6 @@ export class TransactionService {
   ): Promise<TransactionModel> {
     try {
       this.withdrawValidator.validate(withdrawDto);
-      console.log('Withdraw Validated');
       const user: UserModel | null = await this.userRepository.findByCpf(
         withdrawDto.cpf,
       );
@@ -102,8 +101,6 @@ export class TransactionService {
       if (withdrawAccount.balance < newWithdraw.value) {
         throw new BadRequest('Insufficient balance');
       }
-      console.log(newWithdraw);
-      console.log('Inserting withdraw');
       const withdrawResponse = await this.transactionRepository.newWithdraw(
         newWithdraw,
       );
@@ -128,7 +125,6 @@ export class TransactionService {
         timestamp: withdrawResponse.createdAt,
       };
 
-      console.log(apiResponse);
       return apiResponse;
     } catch (error) {
       throw error;
@@ -163,7 +159,6 @@ export class TransactionService {
       if (!match) {
         throw new BadRequest('Wrong password');
       }
-      console.log('Transfer validated');
       const newTransfer = this.buildTransfer(
         transferDto,
         originAccount,

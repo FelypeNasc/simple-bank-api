@@ -64,7 +64,6 @@ export class TransactionRepository extends PostgresDB {
         newWithdraw.totalValue,
       ];
       const queryResponse = await client.query(query, values);
-      console.log('After query');
       if (!queryResponse.rows[0]) {
         throw new InternalError();
       }

@@ -135,9 +135,6 @@ export class AccountRepository extends PostgresDB {
         accountData.agencyNumber,
         accountData.agencyCheckDigit,
       ];
-
-      console.log('Sending query: ', query);
-      console.log('Sending values: ', values);
       const queryResponse = await client.query(query, values);
 
       const response: AccountRepositoryModel = {
@@ -150,8 +147,6 @@ export class AccountRepository extends PostgresDB {
         agencyCheckDigit: queryResponse.rows[0].agency_check_digit,
         balance: queryResponse.rows[0].balance,
       };
-
-      console.log('Response: ', response);
 
       return response;
     } catch (e) {
