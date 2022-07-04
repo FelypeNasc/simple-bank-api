@@ -33,9 +33,12 @@ export class AccountService {
       const newUser = this.buildUser(newAccountDto);
       const newAccount = this.buildAccount(newAccountDto);
 
-      const userResponse = await this.userRepository.create(newUser);
-      const accountResponse = await this.accountRepository.create(newAccount);
+      const userResponse: UserModel = await this.userRepository.create(newUser);
+      const accountResponse: AccountModel = await this.accountRepository.create(
+        newAccount,
+      );
 
+      delete accountResponse.password;
       const newAccountData = {
         user: userResponse,
         account: accountResponse,
@@ -88,12 +91,12 @@ export class AccountService {
     const encriptedPassword = bcrypt.hashSync(newAccountDto.password, salt);
     const newAccount: AccountModel = {
       id: v4(),
-      user_id: newAccountDto.id,
+      userId: newAccountDto.id,
       password: encriptedPassword,
-      agency_number: getRandomInt(1, 999),
-      agency_check_digit: getRandomInt(1, 9),
-      account_number: getRandomInt(1, 99999),
-      account_check_digit: getRandomInt(1, 9),
+      accountNumber: getRandomInt(1, 99999),
+      accountCheckDigit: getRandomInt(1, 9),
+      agencyNumber: getRandomInt(1, 999),
+      agencyCheckDigit: getRandomInt(1, 9),
       balance: 0,
     };
     return newAccount;

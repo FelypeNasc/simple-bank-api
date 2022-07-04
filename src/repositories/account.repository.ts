@@ -1,33 +1,36 @@
 import PostgresDB from '.';
 import { BadRequest, InternalError } from '../errors';
-import AccountResponseModel from '../models/account-response.model';
+import AccountRepositoryModel from '../models/account-repository.model';
 import AccountModel from '../models/account.model';
 import { DepositDto } from '../models/dtos/deposit.dto';
 
 export class AccountRepository extends PostgresDB {
-  public async create(newAccount: AccountModel): Promise<AccountResponseModel> {
+  public async create(
+    newAccount: AccountModel,
+  ): Promise<AccountRepositoryModel> {
     try {
       const client = await this.pool.connect();
       const query = `
-                INSERT INTO mybank.accounts (id, user_id, password, agency_number, agency_check_digit, account_number, account_check_digit, balance)
+                INSERT INTO mybank.accounts (id, user_id, password, account_number, account_check_digit, agency_number, agency_check_digit, balance)
                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
                 RETURNING account_number, agency_number, agency_check_digit, account_check_digit, balance;
                 `;
       const values = [
         newAccount.id,
-        newAccount.user_id,
+        newAccount.userId,
         newAccount.password,
-        newAccount.agency_number,
-        newAccount.agency_check_digit,
-        newAccount.account_number,
-        newAccount.account_check_digit,
+        newAccount.accountNumber,
+        newAccount.accountCheckDigit,
+        newAccount.agencyNumber,
+        newAccount.agencyCheckDigit,
         newAccount.balance,
       ];
       const queryResponse = await client.query(query, values);
 
-      const newAccountData: AccountResponseModel = {
+      const newAccountData: AccountRepositoryModel = {
         id: queryResponse.rows[0].id,
         userId: queryResponse.rows[0].user_id,
+        password: queryResponse.rows[0].password,
         accountNumber: queryResponse.rows[0].account_number,
         accountCheckDigit: queryResponse.rows[0].account_check_digit,
         agencyNumber: queryResponse.rows[0].agency_number,
@@ -67,7 +70,7 @@ export class AccountRepository extends PostgresDB {
   public async findByAccountNumber(
     userId: string,
     accountData: DepositDto,
-  ): Promise<AccountResponseModel | null> {
+  ): Promise<AccountRepositoryModel | null> {
     try {
       const client = await this.pool.connect();
       const query = `
@@ -93,7 +96,7 @@ export class AccountRepository extends PostgresDB {
         return null;
       }
 
-      const accountFound: AccountResponseModel = {
+      const accountFound: AccountRepositoryModel = {
         id: queryResponse.rows[0].id,
         userId: queryResponse.rows[0].user_id,
         password: queryResponse.rows[0].password,
@@ -111,7 +114,7 @@ export class AccountRepository extends PostgresDB {
     }
   }
 
-  public async findById(id: string): Promise<AccountResponseModel | null> {
+  public async findById(id: string): Promise<AccountRepositoryModel | null> {
     try {
       const client = await this.pool.connect();
       const query = `
@@ -124,7 +127,7 @@ export class AccountRepository extends PostgresDB {
                 `;
       const queryResponse = await client.query(query, [id]);
 
-      const response: AccountResponseModel = queryResponse.rows[0];
+      const response: AccountRepositoryModel = queryResponse.rows[0];
 
       if (!response) {
         return null;
