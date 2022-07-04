@@ -86,6 +86,49 @@ export class TransactionRepository extends PostgresDB {
     }
   }
 
+  async newTransfer(
+    newTransfer: TransactionModel,
+  ): Promise<TransactionRepositoryModel> {
+    try {
+      const client = await this.pool.connect();
+      const query = `
+                INSERT INTO mybank.transactions (id, origin_account_id, destination_account_id, value, type, tax, total_value)
+                VALUES ($1,$2,$3,$4,$5,$6,$7)
+                RETURNING *;
+                `;
+      const values = [
+        newTransfer.id,
+        newTransfer.originAccountId,
+        newTransfer.destinationAccountId,
+        newTransfer.value,
+        newTransfer.type,
+        newTransfer.tax,
+        newTransfer.totalValue,
+      ];
+      const queryResponse = await client.query(query, values);
+      const response = queryResponse.rows[0];
+
+      if (!response) {
+        throw new InternalError();
+      }
+
+      const transaction: TransactionRepositoryModel = {
+        id: response.id,
+        originAccountId: response.origin_account_id,
+        destinationAccountId: response.destination_account_id,
+        value: response.value,
+        type: response.type,
+        tax: response.tax,
+        totalValue: response.total_value,
+        createdAt: response.created_at,
+      };
+
+      return transaction;
+    } catch (e) {
+      throw new InternalError();
+    }
+  }
+
   async getStatement(accountId: string): Promise<TransactionRepositoryModel[]> {
     try {
       const client = await this.pool.connect();
