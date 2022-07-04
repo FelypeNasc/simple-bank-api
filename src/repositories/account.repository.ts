@@ -3,6 +3,7 @@ import { BadRequest, InternalError } from '../errors';
 import AccountRepositoryModel from '../models/account-repository.model';
 import AccountModel from '../models/account.model';
 import { DepositDto } from '../models/dtos/deposit.dto';
+import { TransferDto } from '../models/dtos/transfer.dto';
 
 export class AccountRepository extends PostgresDB {
   public async create(
@@ -107,6 +108,47 @@ export class AccountRepository extends PostgresDB {
       };
 
       return accountFound;
+    } catch (e) {
+      throw new InternalError();
+    }
+  }
+
+  public async findByAccountAndCpf(
+    accountData: AccountModel,
+  ): Promise<AccountRepositoryModel> {
+    try {
+      const client = await this.pool.connect();
+      const query = `
+                  SELECT accounts.id, password, account_number, account_check_digit, agency_number, agency_check_digit, balance
+                  FROM mybank.accounts, mybank.users
+                  WHERE accounts.user_id = users.id
+                    AND users.cpf = $1
+                    AND accounts.account_number = $2
+                    AND accounts.account_check_digit = $3
+                    AND accounts.agency_number = $4
+                    AND accounts.agency_check_digit = $5;
+                    `;
+      const values = [
+        accountData.cpf,
+        accountData.accountNumber,
+        accountData.accountCheckDigit,
+        accountData.agencyNumber,
+        accountData.agencyCheckDigit,
+      ];
+      const queryResponse = await client.query(query, values);
+
+      const response: AccountRepositoryModel = {
+        id: queryResponse.rows[0].id,
+        userId: queryResponse.rows[0].user_id,
+        password: queryResponse.rows[0].password,
+        accountNumber: queryResponse.rows[0].account_number,
+        accountCheckDigit: queryResponse.rows[0].account_check_digit,
+        agencyNumber: queryResponse.rows[0].agency_number,
+        agencyCheckDigit: queryResponse.rows[0].agency_check_digit,
+        balance: queryResponse.rows[0].balance,
+      };
+
+      return response;
     } catch (e) {
       throw new InternalError();
     }
