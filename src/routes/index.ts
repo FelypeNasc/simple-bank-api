@@ -23,4 +23,4 @@ router
   .post(transactionController.makeWithdraw.bind(transactionController));
 router
   .route('/transfer')
-  .post(accountController.createAccount.bind(accountController));
+  .post(transactionController.makeTransfer.bind(transactionController));

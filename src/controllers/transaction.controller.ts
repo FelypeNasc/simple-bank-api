@@ -48,4 +48,26 @@ export class TransactionController {
       res.status(error.statusCode).send(response);
     }
   }
+
+  public async makeTransfer(req: Request, res: Response) {
+    try {
+      const data = await this.transactionService.makeTransfer(req.body);
+
+      const response: ResponseStandard = {
+        status: 'success',
+        data,
+      };
+
+      res.status(201).send(response);
+    } catch (error: any) {
+      console.log(error);
+
+      const response: ResponseStandard = {
+        status: error.status,
+        message: error.message,
+      };
+
+      res.status(error.statusCode).send(response);
+    }
+  }
 }

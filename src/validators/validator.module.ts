@@ -10,7 +10,7 @@ export class ValidatorModule {
   }
 
   public passwordValidator(password: string): boolean {
-    const passwordRegex = /^[0-9]{4,8}$/; // 8 to 15 characters, no special characters
+    const passwordRegex = /^[0-9]{4,8}$/; // 4 to 8 characters, just numbers
     if (!passwordRegex.test(password)) {
       throw new BadRequest(
         'Password must be numeric and have between 4 and 8 characters',
