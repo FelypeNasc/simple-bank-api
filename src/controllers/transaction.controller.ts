@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/transaction.service';
-import { ResponseStandard } from '../interfaces/response.interface';
+import { ResponseStandard } from '../models/response.interface';
 
 export class TransactionController {
   private transactionService = new TransactionService();

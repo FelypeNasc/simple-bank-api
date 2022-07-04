@@ -69,7 +69,7 @@ export class AccountRepository extends PostgresDB {
 
   public async findByAccountNumber(
     userId: string,
-    accountData: DepositDto,
+    accountData: AccountModel,
   ): Promise<AccountRepositoryModel | null> {
     try {
       const client = await this.pool.connect();

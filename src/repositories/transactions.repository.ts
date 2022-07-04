@@ -85,4 +85,40 @@ export class TransactionRepository extends PostgresDB {
       throw new InternalError();
     }
   }
+
+  async getStatement(accountId: string): Promise<TransactionRepositoryModel[]> {
+    try {
+      const client = await this.pool.connect();
+      const query = `
+                SELECT * FROM mybank.transactions
+                WHERE origin_account_id = $1
+                OR destination_account_id = $1
+                ORDER BY created_at DESC;
+            `;
+      const values = [accountId];
+      const queryResponse = await client.query(query, values);
+      if (!queryResponse.rows[0]) {
+        throw new InternalError();
+      }
+
+      const response: TransactionRepositoryModel[] = queryResponse.rows.map(
+        (row: any) => {
+          return {
+            id: row.id,
+            originAccountId: row.origin_account_id,
+            destinationAccountId: row.destination_account_id,
+            value: row.value,
+            type: row.type,
+            tax: row.tax,
+            totalValue: row.total_value,
+            createdAt: row.created_at,
+          };
+        },
+      );
+
+      return response;
+    } catch (e) {
+      throw new InternalError();
+    }
+  }
 }

@@ -1,21 +1,26 @@
 import { NewAccountDto } from '../models/dtos/new-account.dto';
+import { StatementDto } from '../models/dtos/statement.dto';
+import { GetAccountDto } from '../models/dtos/get-account.dto';
 import { BadRequest } from '../errors';
 import { NewAccountValidator } from '../validators/new-account.validator';
 import { AccountRepository } from '../repositories/account.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { TransactionRepository } from '../repositories/transactions.repository';
 import getRandomInt from '../utils/get-random.utils';
 import AccountModel from '../models/account.model';
 import UserModel from '../models/user.model';
+import { ValidatorModule } from '../validators/validator.module';
+import { StatementValidator } from '../validators/statement.validator';
+
 import bcrypt from 'bcrypt';
 import { v4 } from 'uuid';
-import { StatementDto } from '../models/dtos/statement.dto';
-import { ValidatorModule } from '../validators/validator.module';
-import { GetAccountDto } from '../models/dtos/get-account.dto';
 
 export class AccountService {
   private accountRepository = new AccountRepository();
   private userRepository = new UserRepository();
+  private transactionRepository = new TransactionRepository();
   private newAccountValidator = new NewAccountValidator();
+  private statementValidator = new StatementValidator();
   private validatorModule = new ValidatorModule();
 
   public async createAccount(newAccountDto: NewAccountDto): Promise<any> {
@@ -60,6 +65,7 @@ export class AccountService {
       }
 
       const accountData = await this.accountRepository.findById(userExists.id);
+
       return accountData;
     } catch (error) {
       throw error;
@@ -68,8 +74,34 @@ export class AccountService {
 
   public async getStatement(statementDto: StatementDto): Promise<any> {
     try {
-      // const response = await this.accountRepository.findByCpf(statementDto);
-      // return response;
+      this.statementValidator.validate(statementDto);
+      const user = await this.userRepository.findByCpf(statementDto.cpf);
+
+      if (!user) {
+        throw new BadRequest('This CPF does not have an account');
+      }
+
+      const accountData = await this.accountRepository.findByAccountNumber(
+        user.id,
+        statementDto,
+      );
+
+      if (!accountData) {
+        throw new BadRequest('Account not found');
+      }
+
+      const hashPassword = accountData.password;
+      const match = bcrypt.compareSync(statementDto.password, hashPassword);
+
+      if (!match) {
+        throw new BadRequest('Wrong password');
+      }
+
+      const statementResponse = await this.transactionRepository.getStatement(
+        accountData.id,
+      );
+
+      return statementResponse;
     } catch (error) {
       throw error;
     }

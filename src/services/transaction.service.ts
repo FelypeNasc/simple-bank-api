@@ -92,10 +92,8 @@ export class TransactionService {
       const match = bcrypt.compareSync(withdrawDto.password, hashPassword);
 
       if (!match) {
-        console.log('Password does not match');
         throw new BadRequest('Wrong password');
       }
-      console.log('Password match!');
       const newWithdraw = this.buildWithdraw(withdrawDto, withdrawAccount.id);
 
       if (withdrawAccount.balance < newWithdraw.value) {
