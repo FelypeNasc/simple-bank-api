@@ -163,7 +163,7 @@ export class TransactionService {
       if (!match) {
         throw new BadRequest('Wrong password');
       }
-
+      console.log('Transfer validated');
       const newTransfer = this.buildTransfer(
         transferDto,
         originAccount,

@@ -135,6 +135,9 @@ export class AccountRepository extends PostgresDB {
         accountData.agencyNumber,
         accountData.agencyCheckDigit,
       ];
+
+      console.log('Sending query: ', query);
+      console.log('Sending values: ', values);
       const queryResponse = await client.query(query, values);
 
       const response: AccountRepositoryModel = {
@@ -148,6 +151,8 @@ export class AccountRepository extends PostgresDB {
         balance: queryResponse.rows[0].balance,
       };
 
+      console.log('Response: ', response);
+
       return response;
     } catch (e) {
       throw new InternalError();
@@ -158,16 +163,26 @@ export class AccountRepository extends PostgresDB {
     try {
       const client = await this.pool.connect();
       const query = `
-                SELECT  account_number, 
+                SELECT account_number, 
                 account_check_digit, 
                 agency_number, 
                 agency_check_digit, 
                 balance 
-                FROM mybank.accounts WHERE user_id = $1;
+                FROM mybank.accounts 
+                WHERE user_id = $1;
                 `;
       const queryResponse = await client.query(query, [id]);
 
-      const response: AccountRepositoryModel = queryResponse.rows[0];
+      const response: AccountRepositoryModel = {
+        id: queryResponse.rows[0].id,
+        userId: queryResponse.rows[0].user_id,
+        password: queryResponse.rows[0].password,
+        accountNumber: queryResponse.rows[0].account_number,
+        accountCheckDigit: queryResponse.rows[0].account_check_digit,
+        agencyNumber: queryResponse.rows[0].agency_number,
+        agencyCheckDigit: queryResponse.rows[0].agency_check_digit,
+        balance: queryResponse.rows[0].balance,
+      };
 
       if (!response) {
         return null;
