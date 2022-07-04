@@ -19,6 +19,13 @@ export class ValidatorModule {
     return true;
   }
 
+  public checkPasswordValidator(password: string): boolean {
+    if (password.length === 0) {
+      throw new BadRequest('Password is required');
+    }
+    return true;
+  }
+
   public nameValidator(name: string): boolean {
     const nameRegex = /^[A-Za-z\s]{3,60}$/; // 3 to 60 characters, spaces allowed
     if (

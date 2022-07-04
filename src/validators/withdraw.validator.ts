@@ -6,6 +6,7 @@ export class WithdrawValidator extends ValidatorModule {
     try {
       this.cpfValidator(withdrawDto.cpf);
       this.valueValidator(withdrawDto.value);
+      this.passwordValidator(withdrawDto.password);
       this.accountValidator(
         withdrawDto.accountNumber,
         withdrawDto.accountCheckDigit,

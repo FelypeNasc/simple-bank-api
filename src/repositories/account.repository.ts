@@ -89,7 +89,6 @@ export class AccountRepository extends PostgresDB {
         accountData.agencyNumber,
         accountData.agencyCheckDigit,
       ];
-      console.log('Values: ', values);
       const queryResponse = await client.query(query, values);
 
       if (queryResponse.rows.length === 0) {
@@ -109,7 +108,6 @@ export class AccountRepository extends PostgresDB {
 
       return accountFound;
     } catch (e) {
-      console.log('error: ', e);
       throw new InternalError();
     }
   }

@@ -5,20 +5,22 @@ import { DepositDto } from '../models/dtos/deposit.dto';
 import { BadRequest } from '../errors';
 import { DepositValidator } from '../validators/deposit.validator';
 import TransactionModel from '../models/transaction.model';
-import AccountModel from '../models/account.model';
 import UserModel from '../models/user.model';
 
 import bcrypt from 'bcrypt';
 import { v4 } from 'uuid';
-import AccountResponseModel from '../models/account-response.model';
+import AccountResponseModel from '../models/account-repository.model';
+import { WithdrawDto } from '../models/dtos/withdraw.dto';
+import { WithdrawValidator } from '../validators/withdraw.validator';
 
 export class TransactionService {
   private accountRepository = new AccountRepository();
   private userRepository = new UserRepository();
   private transactionRepository = new TransactionRepository();
   private depositValidator = new DepositValidator();
+  private withdrawValidator = new WithdrawValidator();
 
-  public async makeDeposit(depositDto: DepositDto): Promise<any> {
+  public async makeDeposit(depositDto: DepositDto): Promise<object> {
     try {
       this.depositValidator.validate(depositDto);
       const user: UserModel | null = await this.userRepository.findByCpf(
@@ -35,10 +37,8 @@ export class TransactionService {
       if (!depositAccount) {
         throw new BadRequest('Account not found');
       }
-      console.log(depositAccount);
 
       const newDeposit = this.buildDeposit(depositDto, depositAccount.id);
-      console.log(newDeposit);
 
       const depositResponse = await this.transactionRepository.newDeposit(
         newDeposit,
@@ -64,62 +64,75 @@ export class TransactionService {
         timestamp: depositResponse.createdAt,
       };
 
-      console.log(apiResponse);
       return apiResponse;
     } catch (error) {
       throw error;
     }
   }
 
-  // public async makeWithdraw(withdrawDto: DepositDto): Promise<any> {
-  //   try {
-  //     this.depositValidator.validate(withdrawDto);
-  //     const user: UserModel | null = await this.userRepository.findByCpf(
-  //       withdrawDto.cpf,
-  //     );
+  public async makeWithdraw(withdrawDto: WithdrawDto): Promise<any> {
+    try {
+      this.withdrawValidator.validate(withdrawDto);
+      console.log('Withdraw Validated');
+      const user: UserModel | null = await this.userRepository.findByCpf(
+        withdrawDto.cpf,
+      );
+      if (!user) {
+        throw new BadRequest('User not found');
+      }
 
-  //     if (!user) {
-  //       throw new BadRequest('User not found');
-  //     }
+      const withdrawAccount: AccountResponseModel | null =
+        await this.accountRepository.findByAccountNumber(user.id, withdrawDto);
 
-  //     const withdrawAccount: AccountResponseModel | null =
-  //       await this.accountRepository.findByAccountNumber(user.id, withdrawDto);
+      if (!withdrawAccount) {
+        throw new BadRequest('Account not found');
+      }
 
-  //     if (!withdrawAccount) {
-  //       throw new BadRequest('Account not found');
-  //     }
+      const hashPassword = withdrawAccount.password;
+      const match = bcrypt.compareSync(withdrawDto.password, hashPassword);
 
-  //     const newWithdraw = this.buildWithdraw(withdrawDto, withdrawAccount.id);
-  //     const withdrawResponse = await this.transactionRepository.newWithdraw(
-  //       newWithdraw,
-  //     );
+      if (!match) {
+        console.log('Password does not match');
+        throw new BadRequest('Wrong password');
+      }
+      console.log('Password match!');
+      const newWithdraw = this.buildWithdraw(withdrawDto, withdrawAccount.id);
 
-  //     await this.accountRepository.updateBalance(
-  //       withdrawAccount.id,
-  //       withdrawResponse.value,
-  //       'debit',
-  //     );
+      if (withdrawAccount.balance < newWithdraw.value) {
+        throw new BadRequest('Insufficient balance');
+      }
+      console.log(newWithdraw);
+      console.log('Inserting withdraw');
+      const withdrawResponse = await this.transactionRepository.newWithdraw(
+        newWithdraw,
+      );
 
-  //     const apiResponse = {
-  //       transactionId: withdrawResponse.id,
-  //       type: withdrawResponse.type,
-  //       value: withdrawResponse.value,
-  //       tax: withdrawResponse.tax,
-  //       totalValue: withdrawResponse.totalValue,
-  //       cpf: user.cpf,
-  //       agencyNumber: withdrawAccount.agencyNumber,
-  //       agencyCheckDigit: withdrawAccount.agencyCheckDigit,
-  //       accountNumber: withdrawAccount.accountNumber,
-  //       accountCheckDigit: withdrawAccount.accountCheckDigit,
-  //       timestamp: withdrawResponse.createdAt,
-  //     };
+      await this.accountRepository.updateBalance(
+        withdrawAccount.id,
+        withdrawResponse.value,
+        'debit',
+      );
 
-  //     console.log(apiResponse);
-  //     return apiResponse;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
+      const apiResponse = {
+        transactionId: withdrawResponse.id,
+        type: withdrawResponse.type,
+        value: withdrawResponse.value,
+        tax: withdrawResponse.tax,
+        totalValue: withdrawResponse.totalValue,
+        cpf: user.cpf,
+        agencyNumber: withdrawAccount.agencyNumber,
+        agencyCheckDigit: withdrawAccount.agencyCheckDigit,
+        accountNumber: withdrawAccount.accountNumber,
+        accountCheckDigit: withdrawAccount.accountCheckDigit,
+        timestamp: withdrawResponse.createdAt,
+      };
+
+      console.log(apiResponse);
+      return apiResponse;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   private buildDeposit(
     depositDto: DepositDto,
@@ -130,12 +143,29 @@ export class TransactionService {
     const value = depositDto.value - taxTotal;
     const newDeposit: TransactionModel = {
       id: v4(),
-      destination_account_id: destinationAccountId,
+      destinationAccountId: destinationAccountId,
       value: value,
       type: 'deposit',
       tax: taxTotal,
-      total_value: depositDto.value,
+      totalValue: depositDto.value,
     };
     return newDeposit;
+  }
+
+  private buildWithdraw(
+    withdrawDto: WithdrawDto,
+    originAccountId: string,
+  ): TransactionModel {
+    const withdrawTax = 4;
+    const value = withdrawDto.value + withdrawTax;
+    const newWithdraw: TransactionModel = {
+      id: v4(),
+      originAccountId: originAccountId,
+      value: value,
+      type: 'withdraw',
+      tax: withdrawTax,
+      totalValue: withdrawDto.value,
+    };
+    return newWithdraw;
   }
 }
