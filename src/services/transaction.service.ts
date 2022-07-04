@@ -12,6 +12,7 @@ import { v4 } from 'uuid';
 import AccountResponseModel from '../models/account-repository.model';
 import { WithdrawDto } from '../models/dtos/withdraw.dto';
 import { WithdrawValidator } from '../validators/withdraw.validator';
+import { TransferDto } from '../models/dtos/transfer.dto';
 
 export class TransactionService {
   private accountRepository = new AccountRepository();
@@ -20,7 +21,7 @@ export class TransactionService {
   private depositValidator = new DepositValidator();
   private withdrawValidator = new WithdrawValidator();
 
-  public async makeDeposit(depositDto: DepositDto): Promise<object> {
+  public async makeDeposit(depositDto: DepositDto): Promise<TransactionModel> {
     try {
       this.depositValidator.validate(depositDto);
       const user: UserModel | null = await this.userRepository.findByCpf(
@@ -70,7 +71,9 @@ export class TransactionService {
     }
   }
 
-  public async makeWithdraw(withdrawDto: WithdrawDto): Promise<any> {
+  public async makeWithdraw(
+    withdrawDto: WithdrawDto,
+  ): Promise<TransactionModel> {
     try {
       this.withdrawValidator.validate(withdrawDto);
       console.log('Withdraw Validated');
@@ -132,6 +135,67 @@ export class TransactionService {
     }
   }
 
+  public async makeTransfer(
+    transferDto: TransferDto,
+  ): Promise<TransactionModel> {
+    try {
+      const originAccount: AccountResponseModel | null =
+        await this.accountRepository.findByAccountAndCpf(
+          transferDto.originAccount,
+        );
+
+      if (!originAccount) {
+        throw new BadRequest('Origin Account not found');
+      }
+
+      const destinationAccount: AccountResponseModel | null =
+        await this.accountRepository.findByAccountAndCpf(
+          transferDto.destinationAccount,
+        );
+
+      if (!destinationAccount) {
+        throw new BadRequest('Destination Account not found');
+      }
+
+      const hashPassword = originAccount.password;
+      const match = bcrypt.compareSync(transferDto.password, hashPassword);
+
+      if (!match) {
+        throw new BadRequest('Wrong password');
+      }
+
+      const newTransfer = this.buildTransfer(
+        transferDto,
+        originAccount,
+        destinationAccount,
+      );
+
+      if (originAccount.balance < newTransfer.value) {
+        throw new BadRequest('Insufficient balance');
+      }
+
+      const transferResponse = await this.transactionRepository.newTransfer(
+        newTransfer,
+      );
+
+      await this.accountRepository.updateBalance(
+        originAccount.id,
+        transferResponse.totalValue,
+        'debit',
+      );
+
+      await this.accountRepository.updateBalance(
+        destinationAccount.id,
+        transferResponse.value,
+        'credit',
+      );
+
+      return transferResponse;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   private buildDeposit(
     depositDto: DepositDto,
     destinationAccountId: string,
@@ -165,5 +229,24 @@ export class TransactionService {
       totalValue: withdrawDto.value,
     };
     return newWithdraw;
+  }
+
+  private buildTransfer(
+    transferDto: TransferDto,
+    originAccount: AccountResponseModel,
+    destinationAccount: AccountResponseModel,
+  ): TransactionModel {
+    const transferTax = 1;
+    const value = transferDto.value + transferTax;
+    const newTransfer: TransactionModel = {
+      id: v4(),
+      originAccountId: originAccount.id,
+      destinationAccountId: destinationAccount.id,
+      value: value,
+      type: 'transfer',
+      tax: transferTax,
+      totalValue: transferDto.value,
+    };
+    return newTransfer;
   }
 }
