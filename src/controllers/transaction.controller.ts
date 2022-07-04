@@ -25,12 +25,12 @@ export class TransactionController {
 
   public async makeWithdraw(req: Request, res: Response) {
     try {
-      // const data = await this.transactionService.makeWithdraw(req.body);
-      // const response: ResponseStandard = {
-      //   status: 'success',
-      //   data,
-      // };
-      // res.status(201).send(response);
+      const data = await this.transactionService.makeWithdraw(req.body);
+      const response: ResponseStandard = {
+        status: 'success',
+        data,
+      };
+      res.status(201).send(response);
     } catch (error: any) {
       console.log(error);
       const response: ResponseStandard = {
