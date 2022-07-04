@@ -1,4 +1,4 @@
-import { ResponseStandard } from '../interfaces/response.interface';
+import { ResponseStandard } from '../models/response.interface';
 
 export class InternalError extends Error implements ResponseStandard {
   public message: string;
