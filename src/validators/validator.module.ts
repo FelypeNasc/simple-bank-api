@@ -33,7 +33,9 @@ export class ValidatorModule {
       name.split(' ').length < 2 ||
       !nameRegex.test(name)
     ) {
-      throw new BadRequest('Name must have between 3 and 60 characters');
+      throw new BadRequest(
+        'Name must have between 3 and 60 characters, no special characters',
+      );
     }
     return true;
   }
